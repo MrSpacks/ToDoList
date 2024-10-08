@@ -1,160 +1,108 @@
 document.addEventListener("DOMContentLoaded", loadTasks);
 
 function newElement() {
-  var inputValue = document.getElementById("myInput").value;
-  if (inputValue === "") {
-    alert("You must write something!");
-  } else {
-    createTaskElement(inputValue);
-    saveTask(inputValue);
-  }
-  document.getElementById("myInput").value = "";
-}
+  const inputValue = document.getElementById("myInput").value;
+  const deadlineValue = document.getElementById("deadlineInput").value;
 
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    newElement();
-  }
-});
-
-function createTaskElement(taskText, isChecked = false) {
-  var li = document.createElement("li");
-  var t = document.createTextNode(taskText);
-  li.appendChild(t);
-  if (isChecked) {
-    li.classList.add("checked");
+  if (inputValue === "" || deadlineValue === "") {
+    alert("You must write a task and select a deadline!");
+    return;
   }
 
-  var span = document.createElement("SPAN");
-  var txt = document.createTextNode("\u00D7");
-  span.className = "close";
-  span.appendChild(txt);
-  li.appendChild(span);
+  const li = document.createElement("li");
+  const daysLeft = calculateDaysLeft(deadlineValue);
 
+  li.innerHTML = `
+    <span class="task-title">${inputValue}</span>
+    <span class="deadline-countdown ${daysLeft > 0 ? "green" : "red"}">${
+    daysLeft > 0 ? `${daysLeft} days left` : "Deadline passed"
+  }</span>
+    <span class="close" onclick="removeTask(this)">×</span>
+  `;
+
+  li.addEventListener("click", toggleTaskCompletion);
   document.getElementById("myUL").appendChild(li);
-
-  span.onclick = function () {
-    deleteTask(taskText);
-    li.style.display = "none";
-  };
-
-  li.addEventListener("dblclick", function () {
-    editTask(li, taskText);
-  });
-
-  li.addEventListener("click", function (ev) {
-    if (ev.target.tagName === "LI") {
-      ev.target.classList.toggle("checked");
-      toggleTaskStatus(taskText);
-    }
-  });
+  saveTask(inputValue, deadlineValue, false); // добавляем статус невыполненной задачи
+  document.getElementById("myInput").value = "";
+  document.getElementById("deadlineInput").value = "";
 }
 
-function saveTask(taskText) {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  tasks.push({ text: taskText, checked: false });
+function toggleTaskCompletion(event) {
+  const task = event.currentTarget;
+  task.classList.toggle("checked");
+
+  const taskTitle = task.querySelector(".task-title").innerText;
+  let tasks = JSON.parse(localStorage.getItem("tasks"));
+
+  // Обновляем статус выполнения в Local Storage
+  tasks = tasks.map((t) => {
+    if (t.title === taskTitle) {
+      return { ...t, completed: !t.completed };
+    }
+    return t;
+  });
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function saveTask(title, deadline, completed) {
+  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks.push({ title, deadline, completed });
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 function loadTasks() {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
   tasks.forEach((task) => {
-    createTaskElement(task.text, task.checked);
-  });
-}
+    const li = document.createElement("li");
+    const daysLeft = calculateDaysLeft(task.deadline);
 
-function toggleTaskStatus(taskText) {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  tasks.forEach((task) => {
-    if (task.text === taskText) {
-      task.checked = !task.checked;
+    li.innerHTML = `
+      <span class="task-title">${task.title}</span>
+            <span class="deadline-countdown ${daysLeft > 0 ? "green" : "red"}">
+        ${daysLeft > 0 ? `${daysLeft} days left` : "Deadline passed"}
+      </span>
+      <span class="close" onclick="removeTask(this)">×</span>
+    `;
+
+    // Добавляем класс `checked`, если задача была выполнена
+    if (task.completed) {
+      li.classList.add("checked");
     }
-  });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
 
-function deleteTask(taskText) {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  tasks = tasks.filter((task) => task.text !== taskText);
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-function editTask(li, oldText) {
-  var input = document.createElement("input");
-  input.type = "text";
-  input.value = oldText;
-  li.innerHTML = "";
-  li.appendChild(input);
-  input.focus();
-
-  input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      var newText = input.value;
-      if (newText === "") {
-        alert("You must write something!");
-        return;
-      }
-
-      li.innerHTML = newText;
-      var span = document.createElement("SPAN");
-      var txt = document.createTextNode("\u00D7");
-      span.className = "close";
-      span.appendChild(txt);
-      li.appendChild(span);
-
-      updateTask(oldText, newText);
-
-      span.onclick = function () {
-        deleteTask(newText);
-        li.style.display = "none";
-      };
-
-      li.addEventListener("dblclick", function () {
-        editTask(li, newText);
-      });
-
-      li.addEventListener("click", function (ev) {
-        if (ev.target.tagName === "LI") {
-          ev.target.classList.toggle("checked");
-          toggleTaskStatus(newText);
-        }
-      });
-    }
+    // Добавляем обработчик для отметки выполнения
+    li.addEventListener("click", toggleTaskCompletion);
+    document.getElementById("myUL").appendChild(li);
   });
 }
 
-function updateTask(oldText, newText) {
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-  tasks.forEach((task) => {
-    if (task.text === oldText) {
-      task.text = newText;
-    }
-  });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+function calculateDaysLeft(deadline) {
+  const currentDate = new Date();
+  const deadlineDate = new Date(deadline);
+  const timeDiff = deadlineDate - currentDate;
+  return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 }
 
-function filterTasks(filter) {
-  let tasks = document.querySelectorAll("li");
+function removeTask(element) {
+  const taskTitle =
+    element.parentElement.querySelector(".task-title").innerText;
+  let tasks = JSON.parse(localStorage.getItem("tasks"));
+  tasks = tasks.filter((task) => task.title !== taskTitle);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+  element.parentElement.remove();
+}
 
-  tasks.forEach((task) => {
-    switch (filter) {
-      case "all":
-        task.style.display = "list-item";
-        break;
-      case "completed":
-        if (task.classList.contains("checked")) {
-          task.style.display = "list-item";
-        } else {
-          task.style.display = "none";
-        }
-        break;
-      case "uncompleted":
-        if (!task.classList.contains("checked")) {
-          task.style.display = "list-item";
-        } else {
-          task.style.display = "none";
-        }
-        break;
+function filterTasks(status) {
+  const allTasks = document.querySelectorAll("#myUL li");
+  allTasks.forEach((task) => {
+    const isCompleted = task.classList.contains("checked");
+    if (
+      status === "all" ||
+      (status === "completed" && isCompleted) ||
+      (status === "uncompleted" && !isCompleted)
+    ) {
+      task.style.display = "";
+    } else {
+      task.style.display = "none";
     }
   });
 }

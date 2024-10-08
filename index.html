@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>ToDo List with Deadline</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -11,8 +11,11 @@
     <div class="container">
       <div id="myDIV" class="header">
         <h2>My To Do List</h2>
-        <input type="text" id="myInput" placeholder="Title..." />
-        <span onclick="newElement()" class="addBtn">Add</span>
+        <div class="input-group">
+          <input type="text" id="myInput" placeholder="Title..." />
+          <input type="date" id="deadlineInput" class="deadline-input" />
+          <span onclick="newElement()" class="addBtn">Add</span>
+        </div>
       </div>
       <div class="filter">
         <button class="btn_dark btn_filter" onclick="filterTasks('all')">
@@ -28,7 +31,6 @@
           Uncompleted Tasks
         </button>
       </div>
-
       <ul id="myUL"></ul>
     </div>
     <script src="./index.js"></script>

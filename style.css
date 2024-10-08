@@ -1,4 +1,28 @@
-:root {
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deadline-input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-width: 150px;
+}
+
+.deadline-countdown {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.deadline-countdown.green {
+  color: green;
+}
+
+.deadline-countdown.red {
+  color: red;
 }
 ul,
 li {
@@ -26,7 +50,6 @@ body {
   --invert-color-bg: white;
   --invert-color-text: #2f2e2e;
 }
-/* button dark mode */
 .btn_dark {
   padding: 10px;
   margin: 20px;
@@ -45,21 +68,16 @@ body {
 .btn_filter {
   width: 150px;
 }
-/* container styles */
 .container {
   max-width: 1000px;
   padding: 20px;
   margin: 20px auto;
 }
-/* ul {
-  margin: 0;
-  padding: 0;
-} */
 
 ul li {
   cursor: pointer;
   position: relative;
-  padding: 12px 8px 12px 40px;
+  padding: 12px 35px 12px 40px;
   background: var(--invert-color-bg);
   font-size: 18px;
   transition: 0.2s;
@@ -70,6 +88,8 @@ ul li {
   user-select: none;
   border-bottom: solid 1px #555;
   position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 ul li input {
   position: absolute;
